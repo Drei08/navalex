@@ -24,7 +24,7 @@ export default function Booking() {
   return (
     <div className="book">
       <header className="book-top"><a href="#inicio" className="back"><FaArrowLeft /> Voltar ao site</a>
-        <div className="logo"><FaCut /> Alex Navalex</div></header>
+        <div className="logo" ><a className="logo" href="#inicio"><FaCut /> Alex Navalex</a></div></header>
       <main className="book-main">
         <h1>Agende seu horário</h1><p className="sub">Escolha serviço, dia e horário. A confirmação é feita pelo WhatsApp.</p>
         <div className="steps">{['Serviço', 'Data', 'Horário', 'Dados'].map((t, k) => <span key={t} className={k + 1 <= step ? 'on' : ''}>{k + 1}. {t}</span>)}</div>
@@ -49,7 +49,10 @@ export default function Booking() {
           {f.service && f.date && f.time && <div className="sum"><FaCheckCircle /> {f.service} · {fmt(f.date)} às {f.time}</div>}
           <button className="btn wa" disabled={step < 4}><FaWhatsapp /> Confirmar pelo WhatsApp</button>
         </form>
-        <p className="note">📍 {ADDRESS} · Domingos fechado. Horário sujeito a confirmação.</p>
+        
+        <p className="note">· Segunda a Sexta, das 9h às 18h</p>
+        <p className="note">· Sábado 9h às 13h</p>
+        <p className="note">· {ADDRESS}</p>
       </main>
     </div>)
 }

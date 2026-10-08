@@ -55,6 +55,19 @@ h3,
   border-bottom: 1px solid #ffffff14;
 }
 
+.nav li a {
+  display: block;
+  padding: .4rem .9rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: .2s;
+}
+
+.nav li a:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -110,7 +123,7 @@ h3,
 
 .hero {
   position: relative;
-  height: calc(100vh - 62px);
+  height: calc(80vh - 62px);
   min-height: 480px;
   overflow: hidden;
 }
@@ -180,6 +193,52 @@ h3,
   color: #111;
 }
 
+.about-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-items: stretch;
+  background: var(--card);
+  border: 1px solid #ffffff10;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.about-img {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  max-height: 420px;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+
+.about-txt {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2.5rem;
+}
+
+.about-txt h3 {
+  color: var(--gold);
+  font-size: 1.6rem;
+  
+}
+
+.about-txt p {
+  color: var(--tx);
+}
+
+.about-img {
+  width: 100%;
+  height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
 .dots {
   position: absolute;
   bottom: 4vh;
@@ -228,6 +287,22 @@ h3,
 
 .car {
   position: relative;
+}
+
+#sobre {
+  margin-top: -4rem;
+}
+
+#contato {
+  margin-top: -4rem;
+}
+
+#localizacao {
+  margin-top: -4rem;
+}
+
+#trabalhos {
+  margin-top: -4.3rem;
 }
 
 .track {

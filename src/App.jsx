@@ -5,11 +5,10 @@ import Booking from './Booking.jsx'
 import { PHONE, WA, INSTAGRAM, ADDRESS, MAPS } from './config.js'
 
 const slides = [
-  { img: 'foto2.jpg', title: 'Estilo e precisão', text: 'Cada corte pensado para o seu visual.' },
-  { img: 'foto4.jpg', title: 'Degradê na régua', text: 'Acabamento limpo, do início ao fim.' },
+  { img: 'foto1.jpg', title: 'Degradê na régua', text: 'Acabamento limpo, do início ao fim.' },
   { img: 'foto3.jpg', title: 'Detalhe na tesoura', text: 'Atendimento com calma e cuidado.' },
 ]
-const gallery = ['foto1.jpg', 'foto2.jpg', 'foto3.jpg', 'foto4.jpg', 'foto5.jpg']
+const gallery = ['foto6.png','foto2.jpg', 'foto8.png','foto1.jpg', 'foto3.jpg', 'foto4.jpg', , 'foto7.png']
 
 function Hero() {
   const [i, setI] = useState(0)
@@ -34,7 +33,7 @@ function Gallery() {
   const ref = useRef()
   const go = d => ref.current.scrollBy({ left: d * 300, behavior: 'smooth' })
   return (
-    <section id="trabalhos" className="sec"><h2>Nossos trabalhos</h2>
+    <section id="trabalhos" className="sec tab"><h2>Nossos Trabalhos</h2>
       <div className="car">
         <button className="arrow l" aria-label="Anterior" onClick={() => go(-1)}><FaChevronLeft /></button>
         <div className="track" ref={ref}>{gallery.map(g => <img key={g} src={'img/' + g} alt="Corte feito por Alex Navalex" loading="lazy" />)}</div>
@@ -47,14 +46,22 @@ function Home() {
   const links = [['sobre', 'SOBRE'], ['trabalhos', 'TRABALHOS'], ['contato', 'CONTATO'], ['localizacao', 'LOCALIZAÇÃO']]
   
   return (<>
-    <nav className="nav"><a className="logo" href="#inicio"><FaCut /> Alex Navalex</a>
+    <nav className="nav"><a className="logo" href="#inicio"><FaCut /> Cabelereiro Navalex</a>
       <button className="burger" aria-label="Menu" onClick={() => setOpen(!open)}>{open ? <FaTimes /> : <FaBars />}</button>
       <ul className={open ? 'open' : ''}>{links.map(([id, t]) => <li key={id}><a href={'#' + id} onClick={() => setOpen(false)}>{t}</a></li>)}
-        <li><a className="btn sm" href="#/agendar">Agendar</a></li>
         </ul></nav>
     <Hero />
-    <section id="sobre" className="sec about"><h2>Sobre</h2>
-      <p>Aqui o corte é feito com atenção a cada detalhe: degradê, tesoura, máquina e acabamento na navalha. Venha conhecer o trabalho do Alex Navalex e saia com o visual que você queria.</p></section>
+    <section id="sobre" className="sec">
+      <h2>Sobre</h2>
+      <div className="about-card">
+        <img className="about-img" src="img/sobre.png" alt="Alex Navalex na barbearia" loading="lazy" />
+        <div className="about-txt">
+          <h3>Alex Navalex</h3>
+          <p>Aqui o corte é feito com atenção a cada detalhe: degradê, tesoura, máquina e acabamento na navalha.</p>
+          <p>O atendimento é no ritmo de cada cliente, sem pressa, para você sair com o visual que queria. Venha conhecer o trabalho do Alex Navalex em Osvaldo Cruz.</p>
+        </div>
+      </div>
+    </section>
     <Gallery />
     <section id="contato" className="sec"><h2>Contato</h2>
       <div className="cards">
@@ -64,7 +71,7 @@ function Home() {
       </div></section>
     <section id="localizacao" className="sec"><h2>Localização</h2>
           <p className="addr"><FaMapMarkerAlt /> {ADDRESS}</p>
-          <div className="map" style={{ position: 'relative', overflow: 'hidden', borderRadius: 16, height: 420 }}>
+          <div className="map" style={{ position: 'relative', overflow: 'hidden', borderRadius: 16, height: 220 }}>
             {/* o iframe é maior e sobe 170px para esconder o cartão de erro do Google no topo */}
             <iframe title="Mapa" src={MAPS} loading="lazy" style={{ height: 390, marginTop: -170 }} />
             <a
@@ -78,7 +85,7 @@ function Home() {
           </div>
         </section>
 
-    <footer>© {new Date().getFullYear()} Alex Navalex · Todos os direitos reservados</footer>
+    <footer>© {new Date().getFullYear()} devA⅃A · Todos os direitos reservados</footer>
     <a className="fab" href="#/agendar"><FaCalendarCheck /><span>Agendar um horário</span></a>
   </>)
 }
