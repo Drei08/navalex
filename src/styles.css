@@ -301,6 +301,10 @@ h3,
   margin-top: -4rem;
 }
 
+#localizacao .map {
+  margin-top: 2rem;
+}
+
 #trabalhos {
   margin-top: -4.3rem;
 }
@@ -388,6 +392,11 @@ footer {
   font-size: .9rem;
 }
 
+footer span {
+  font-size: 1.2rem;
+  color: var(--gold);
+}
+
 .fab {
   position: fixed;
   right: 18px;
@@ -446,6 +455,93 @@ footer {
   font-size: 2.2rem;
   color: var(--gold);
 }
+
+
+.chips button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.chips button:disabled .hora {
+  text-decoration: line-through;
+}
+
+.chips button.busy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.chips button.busy small {
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.chips button.svc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.3;
+}
+
+.chips button.svc small {
+  margin-top: .2rem;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.chips button.svc.on small {
+  color: #111;
+}
+
+
+.booked {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  background: var(--card);
+  border: 1px solid #ffffff10;
+  border-radius: 16px;
+}
+
+.booked h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  color: var(--gold);
+}
+
+.booked ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.booked li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .6rem 0;
+  border-bottom: 1px solid #ffffff10;
+}
+
+.booked li:last-child {
+  border-bottom: 0;
+}
+
+.booked li span {
+  color: var(--mut);
+}
+
+.booked p {
+  color: var(--mut);
+}
+
 
 .sub {
   color: var(--mut);
@@ -516,6 +612,20 @@ footer {
   background: var(--gold);
   color: #111;
   border-color: var(--gold);
+}
+
+.dev-logo {
+  color: var(--tx);
+  font-weight: 700;
+}
+
+.dev-logo b {
+  color: #ff6a00;
+}
+
+.flip {
+  display: inline-block;
+  transform: scaleX(-1);
 }
 
 form {

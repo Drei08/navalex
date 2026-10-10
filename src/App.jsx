@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { FaWhatsapp, FaInstagram, FaMapMarkerAlt, FaCut, FaPhoneAlt, FaCalendarCheck,
-  FaChevronLeft, FaChevronRight, FaBars, FaTimes } from 'react-icons/fa'
+  FaChevronLeft, FaChevronRight, FaBars, FaTimes, FaRegClock } from 'react-icons/fa'
+import { PHONE, WA, INSTAGRAM, ADDRESS, ENDER, MAPS } from './config.js'
 import Booking from './Booking.jsx'
-import { PHONE, WA, INSTAGRAM, ADDRESS, MAPS } from './config.js'
+import Admin from './Admin.jsx'
 
 const slides = [
   { img: 'foto1.jpg', title: 'Degradê na régua', text: 'Acabamento limpo, do início ao fim.' },
@@ -66,14 +67,14 @@ function Home() {
     <section id="contato" className="sec"><h2>Contato</h2>
       <div className="cards">
         <a className="card" href={WA} target="_blank" rel="noreferrer"><FaWhatsapp /><b>WhatsApp</b><span>{PHONE}</span></a>
-        <a className="card" href="#/agendar"><FaCalendarCheck /><b>Agendar</b><span>{PHONE}</span></a>
+        <a className="card" href="#/agendar"><FaCalendarCheck /><b>Agendar</b><span>{ENDER}</span></a>
         <a className="card" href={INSTAGRAM} target="_blank" rel="noreferrer"><FaInstagram /><b>Instagram</b><span>@navalhex</span></a>
       </div></section>
     <section id="localizacao" className="sec"><h2>Localização</h2>
           <p className="addr"><FaMapMarkerAlt /> {ADDRESS}</p>
           <div className="map" style={{ position: 'relative', overflow: 'hidden', borderRadius: 16, height: 220 }}>
             {/* o iframe é maior e sobe 170px para esconder o cartão de erro do Google no topo */}
-            <iframe title="Mapa" src={MAPS} loading="lazy" style={{ height: 390, marginTop: -170 }} />
+            <iframe title="Mapa" src={MAPS} loading="lazy" style={{ height: 590, marginTop: -170 }} />
             <a
               className="map-link"
               style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 2, display: 'block', cursor: 'pointer' }}
@@ -85,14 +86,17 @@ function Home() {
           </div>
         </section>
 
-    <footer>© {new Date().getFullYear()} devA⅃A · Todos os direitos reservados</footer>
+    <footer>© {new Date().getFullYear()} <span className="dev-logo">dev<b>A<i className="flip">L</i>A</b></span> · Todos os Direitos Reservados</footer>
     <a className="fab" href="#/agendar"><FaCalendarCheck /><span>Agendar um horário</span></a>
   </>)
 }
+
+const isAdmin = () => location.pathname.replace(/\/+$/, '').endsWith('/admin')
 
 export default function App() {
   const [route, setRoute] = useState(location.hash)
   useEffect(() => { const f = () => { setRoute(location.hash); if (location.hash.startsWith('#/')) scrollTo(0, 0) }
     addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
+  if (isAdmin()) return <Admin />
   return route === '#/agendar' ? <Booking /> : <Home />
 }
