@@ -55,6 +55,7 @@
 
 .dev-muted {
   color: var(--d-mut);
+ 
 }
 
 .dev-center {
@@ -330,4 +331,127 @@
 
 .dev-totals .big b {
   color: var(--d-or);
+}
+
+
+/* ===== Responsivo (celular) ===== */
+.dev,
+.dev * {
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 600px) {
+  .dev {
+    padding: 1.2rem .8rem;
+  }
+
+  /* login */
+  .dev:has(.dev-card) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dev-card {
+    width: 100%;
+    margin: 0;
+    padding: 1.8rem 1.2rem;
+  }
+
+  .dev-brand {
+    font-size: 2rem;
+  }
+
+  /* topo: logo em cima, e-mail + Sair embaixo */
+  .dev-top {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1.2rem;
+  }
+
+  .dev-top .dev-brand {
+    text-align: left;
+  }
+
+  .dev-user {
+    width: 100%;
+    justify-content: space-between;
+    gap: .6rem;
+  }
+
+  .dev-user span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .dev-panel h1 {
+    font-size: 1.6rem;
+  }
+
+  /* barra: data ocupa a linha toda, depois 2 botões lado a lado, Imprimir embaixo */
+  .dev-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .6rem;
+  }
+
+  .dev-bar label {
+    grid-column: 1 / -1;
+  }
+
+  .dev-bar input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dev-bar .dev-btn {
+    grid-column: 1 / -1;
+  }
+
+  .dev-bar .dev-ghost,
+  .dev-bar .dev-btn {
+    justify-content: center;
+  }
+
+  /* cada agendamento vira um card: hora | nome+serviço | preço, e Excluir embaixo */
+  .dev-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "time info price"
+      "del  del  del";
+    align-items: start;
+    gap: .6rem .9rem;
+    padding: 1rem;
+  }
+
+  .dev-time {
+    grid-area: time;
+    min-width: 0;
+    font-size: 1.2rem;
+  }
+
+  .dev-info {
+    grid-area: info;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .dev-price {
+    grid-area: price;
+  }
+
+  .dev-del {
+    grid-area: del;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .dev-totals {
+    padding: .9rem 1rem;
+  }
+
+  .dev-totals .big {
+    font-size: 1.15rem;
+  }
 }

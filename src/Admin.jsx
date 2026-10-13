@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { FaSignOutAlt, FaTrashAlt, FaPrint, FaLock, FaCalendarDay } from 'react-icons/fa'
-import { isRemote, watchUser, login, logout, subscribeBookings, deleteBooking } from './bookings.js'
+import { isRemote, watchUser, login, logout, subscribeAllBookings, deleteBooking } from './bookings.js'
 import './styles-admin-append.css'
 
 const todayIso = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) }
 const fmt = s => s.split('-').reverse().join('/')
 const money = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+
 
 function Brand() {
   return <div className="dev-brand">dev<b>A<span className="flip">L</span>A</b></div>
@@ -29,7 +31,7 @@ function Login() {
     <div className="dev">
       <div className="dev-card">
         <Brand />
-        <p className="dev-muted dev-center">Acesso ao painel de agendamentos</p>
+        <p className="dev-muted dev-center">Painel de Sistema</p>
         <form onSubmit={submit} className="dev-form">
           <label>E-mail<input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required /></label>
           <label>Senha<input type="password" autoComplete="current-password" value={pass} onChange={e => setPass(e.target.value)} required /></label>
@@ -45,7 +47,7 @@ function Panel({ user }) {
   const [list, setList] = useState([])
   const [day, setDay] = useState(todayIso())
   const [msg, setMsg] = useState('')
-  useEffect(() => subscribeBookings(setList), [])
+useEffect(() => subscribeAllBookings(setList), [])
 
   const shown = day ? list.filter(b => b.date === day) : list
   const total = shown.reduce((sum, b) => sum + (b.price || 0), 0)

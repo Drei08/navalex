@@ -32,11 +32,17 @@ export async function listBookings() {
   return snap.docs.map(d => d.data()).sort(byDate)
 }
 
-// Tempo real: chama cb(lista) sempre que um agendamento é criado ou excluído. Retorna a função para parar de ouvir.
+// Site de agendamento: só de hoje em diante
 export function subscribeBookings(cb) {
   if (!isRemote) { listeners.add(cb); cb(upcoming()); return () => listeners.delete(cb) }
   const q = query(collection(db, 'agendamentos'), where('date', '>=', today()), orderBy('date'))
   return onSnapshot(q, snap => cb(snap.docs.map(d => d.data()).sort(byDate)), () => {})
+}
+
+// Painel do Alex: todos, inclusive dias que já passaram
+export function subscribeAllBookings(cb) {
+  if (!isRemote) { listeners.add(cb); cb(readLocal().sort(byDate)); return () => listeners.delete(cb) }
+  return onSnapshot(collection(db, 'agendamentos'), snap => cb(snap.docs.map(d => d.data()).sort(byDate)), () => {})
 }
 
 export async function addBooking(b) {

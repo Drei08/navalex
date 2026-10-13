@@ -63,10 +63,17 @@ export default function Booking() {
 
   return (
     <div className="book">
-      <header className="book-top"><a href="#inicio" className="back"><FaArrowLeft /> Voltar ao site</a>
-        <div className="logo"><a className="logo" href="#inicio"><FaCut />Alex Navalex</a></div></header>
+
+      <header className="book-top">
+        <a href="#inicio" className="back"><FaArrowLeft /> Voltar ao site</a>
+        <div className="logo">
+          <a className="logo" href="#inicio"><FaCut />Alex Navalex</a>
+        </div>
+      </header>
+
       <main className="book-main">
-        <h1>Agende seu horário</h1><p className="sub">Escolha serviço, dia e horário. A confirmação é feita pelo WhatsApp.</p>
+        <h1>Agende seu horário</h1>
+        <p className="sub">Escolha serviço, dia e horário. A confirmação é feita pelo WhatsApp.</p>
         <div className="steps">{['Serviço', 'Data', 'Horário', 'Dados'].map((t, k) => <span key={t} className={k + 1 <= step ? 'on' : ''}>{k + 1}. {t}</span>)}</div>
 
         <h3>1. Serviço</h3>
@@ -112,5 +119,7 @@ export default function Booking() {
           {!isRemote && <p className="note">Modo de teste: os agendamentos só aparecem neste navegador.</p>}
         </section>
       </main>
+
+      <footer>© {new Date().getFullYear()} <span className="dev-logo">dev<b>A<i className="flip">L</i>A</b></span> · Todos os Direitos Reservados</footer>
     </div>)
 }

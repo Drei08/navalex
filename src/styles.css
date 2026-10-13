@@ -614,6 +614,10 @@ footer span {
   border-color: var(--gold);
 }
 
+.dev-card {
+  margin-top: 1rem;
+}
+
 .dev-logo {
   color: var(--tx);
   font-weight: 700;
@@ -658,9 +662,22 @@ input:focus {
 }
 
 .btn.wa {
-  background: #25d366;
+  background-color: #25d366;
   justify-content: center;
   font-size: 1.05rem;
+  margin-top: 0.5rem;
+  border: 2px solid #25d366;
+}
+
+/* sem preencher tudo: fundo escuro, borda e texto dourados */
+.btn.wa:disabled {
+  color: var(--gold);
+  background: transparent;
+  border-color: var(--gold);
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
 }
 
 .btn:disabled {
@@ -674,10 +691,14 @@ input:focus {
 }
 
 .note {
-  margin-top: 1.5rem;
-  color: var(--mut);
-  font-size: .9rem;
+  font-family: Oswald, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-top: 1rem;
+  color: var(--tx);
+  font-size: 1rem;
 }
+
 
 @media(max-width:760px) {
   .burger {
