@@ -2,7 +2,7 @@
 // Sem as variáveis VITE_FIREBASE_* no .env, o site público usa o localStorage (modo de teste).
 //
 // Duas coleções no Firestore:
-//   horarios      -> só { date, time }. É pública: o site lê para esconder horários ocupados.
+//   horarios      -> { date, time, name } com só o PRIMEIRO nome. É pública: o site lê para mostrar os horários ocupados.
 //   agendamentos  -> { name, date, time, service, price }. É privada: só o dono lê (ver firestore.rules).
 // As duas usam o mesmo id "data_hora" e são gravadas/apagadas juntas, sempre em uma operação só.
 import { initializeApp } from 'firebase/app'
@@ -26,6 +26,10 @@ const readLocal = () => { try { return JSON.parse(localStorage.getItem(LS) || '[
 const byDate = (a, b) => (a.date + a.time).localeCompare(b.date + b.time)
 const upcoming = () => readLocal().filter(b => b.date >= today()).sort(byDate)
 const docId = b => `${b.date}_${b.time}`
+
+// Nome que aparece na lista pública de horários. Só o primeiro nome, para não expor o nome completo.
+// Para mostrar o nome completo, troque o corpo por: String(n || '').trim().slice(0, 30) || 'Cliente'
+const publicName = n => String(n || '').trim().split(/\s+/)[0].slice(0, 30) || 'Cliente'
 
 // modo de teste: avisa quem está "ouvindo" quando algo muda
 const listeners = new Set()
@@ -71,7 +75,7 @@ export async function addBooking(b) {
   const bookingRef = doc(db, 'agendamentos', id)
   await runTransaction(db, async tx => {
     if ((await tx.get(slotRef)).exists()) throw new Error('taken')
-    tx.set(slotRef, { date: b.date, time: b.time })
+    tx.set(slotRef, { date: b.date, time: b.time, name: publicName(b.name) })
     tx.set(bookingRef, { name: b.name, date: b.date, time: b.time, service: b.service || '', price: Number(b.price) || 0 })
   })
 }
@@ -86,16 +90,16 @@ export function deleteBooking(b) {
   return batch.commit()
 }
 
-// RODAR UMA ÚNICA VEZ, logado como dono: cria os "horarios" dos agendamentos que já existiam.
-// Sem isso, os horários antigos apareceriam como livres no site.
+// RODAR UMA VEZ, logado como dono: cria/atualiza os "horarios" a partir dos agendamentos que já existem
+// (inclui o primeiro nome). Sem isso, os horários antigos aparecem livres ou sem nome no site.
 // (Lotes de 10: as regras consultam outro documento a cada gravação e há limite por lote.)
 export async function migrateHorarios() {
   const docs = (await getDocs(collection(db, 'agendamentos'))).docs
   for (let i = 0; i < docs.length; i += 10) {
     const batch = writeBatch(db)
     docs.slice(i, i + 10).forEach(d => {
-      const { date, time } = d.data()
-      batch.set(doc(db, 'horarios', d.id), { date, time })
+      const { date, time, name } = d.data()
+      batch.set(doc(db, 'horarios', d.id), { date, time, name: publicName(name) })
     })
     await batch.commit()
   }
