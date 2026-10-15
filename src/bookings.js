@@ -1,7 +1,12 @@
 // Agendamentos no Firebase (Firestore) + login do painel (Authentication).
 // Sem as variáveis VITE_FIREBASE_* no .env, o site público usa o localStorage (modo de teste).
+//
+// Duas coleções no Firestore:
+//   horarios      -> só { date, time }. É pública: o site lê para esconder horários ocupados.
+//   agendamentos  -> { name, date, time, service, price }. É privada: só o dono lê (ver firestore.rules).
+// As duas usam o mesmo id "data_hora" e são gravadas/apagadas juntas, sempre em uma operação só.
 import { initializeApp } from 'firebase/app'
-import { getFirestore, collection, doc, getDocs, query, where, orderBy, runTransaction, onSnapshot, deleteDoc } from 'firebase/firestore'
+import { getFirestore, collection, doc, getDocs, query, where, orderBy, runTransaction, writeBatch, onSnapshot } from 'firebase/firestore'
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
 
 const cfg = {
@@ -26,23 +31,29 @@ const docId = b => `${b.date}_${b.time}`
 const listeners = new Set()
 const emit = () => listeners.forEach(fn => fn(upcoming()))
 
+// Horários ocupados de hoje em diante (só data e hora, sem dados do cliente)
+const upcomingSlots = () => query(collection(db, 'horarios'), where('date', '>=', today()), orderBy('date'))
+
 export async function listBookings() {
   if (!isRemote) return upcoming()
-  const snap = await getDocs(query(collection(db, 'agendamentos'), where('date', '>=', today()), orderBy('date')))
+  const snap = await getDocs(upcomingSlots())
   return snap.docs.map(d => d.data()).sort(byDate)
 }
 
 // Site de agendamento: só de hoje em diante
 export function subscribeBookings(cb) {
   if (!isRemote) { listeners.add(cb); cb(upcoming()); return () => listeners.delete(cb) }
-  const q = query(collection(db, 'agendamentos'), where('date', '>=', today()), orderBy('date'))
-  return onSnapshot(q, snap => cb(snap.docs.map(d => d.data()).sort(byDate)), () => {})
+  return onSnapshot(upcomingSlots(), snap => cb(snap.docs.map(d => d.data()).sort(byDate)), () => {})
 }
 
-// Painel do Alex: todos, inclusive dias que já passaram
+// Painel do Alex: todos, inclusive dias que já passaram (só o dono logado consegue ler)
 export function subscribeAllBookings(cb) {
   if (!isRemote) { listeners.add(cb); cb(readLocal().sort(byDate)); return () => listeners.delete(cb) }
-  return onSnapshot(collection(db, 'agendamentos'), snap => cb(snap.docs.map(d => d.data()).sort(byDate)), () => {})
+  return onSnapshot(
+    collection(db, 'agendamentos'),
+    snap => cb(snap.docs.map(d => d.data()).sort(byDate)),
+    err => console.error('Firestore (agendamentos):', err.code, err.message)
+  )
 }
 
 export async function addBooking(b) {
@@ -53,16 +64,43 @@ export async function addBooking(b) {
     emit()
     return
   }
-  // o id do documento é "data_hora": dois clientes não conseguem ocupar o mesmo horário
-  const ref = doc(db, 'agendamentos', docId(b))
+  // O id do documento é "data_hora": dois clientes não conseguem ocupar o mesmo horário.
+  // A checagem é feita na coleção pública "horarios", que o site tem permissão de ler.
+  const id = docId(b)
+  const slotRef = doc(db, 'horarios', id)
+  const bookingRef = doc(db, 'agendamentos', id)
   await runTransaction(db, async tx => {
-    if ((await tx.get(ref)).exists()) throw new Error('taken')
-    tx.set(ref, { name: b.name, date: b.date, time: b.time, service: b.service || '', price: Number(b.price) || 0 })
+    if ((await tx.get(slotRef)).exists()) throw new Error('taken')
+    tx.set(slotRef, { date: b.date, time: b.time })
+    tx.set(bookingRef, { name: b.name, date: b.date, time: b.time, service: b.service || '', price: Number(b.price) || 0 })
   })
 }
 
-// Só funciona logado com o e-mail autorizado nas regras do Firestore
-export const deleteBooking = b => deleteDoc(doc(db, 'agendamentos', docId(b)))
+// Só funciona logado com o e-mail autorizado nas regras do Firestore.
+// Apaga o agendamento e o horário juntos, para o horário voltar a ficar livre no site.
+export function deleteBooking(b) {
+  const id = docId(b)
+  const batch = writeBatch(db)
+  batch.delete(doc(db, 'agendamentos', id))
+  batch.delete(doc(db, 'horarios', id))
+  return batch.commit()
+}
+
+// RODAR UMA ÚNICA VEZ, logado como dono: cria os "horarios" dos agendamentos que já existiam.
+// Sem isso, os horários antigos apareceriam como livres no site.
+// (Lotes de 10: as regras consultam outro documento a cada gravação e há limite por lote.)
+export async function migrateHorarios() {
+  const docs = (await getDocs(collection(db, 'agendamentos'))).docs
+  for (let i = 0; i < docs.length; i += 10) {
+    const batch = writeBatch(db)
+    docs.slice(i, i + 10).forEach(d => {
+      const { date, time } = d.data()
+      batch.set(doc(db, 'horarios', d.id), { date, time })
+    })
+    await batch.commit()
+  }
+  return docs.length
+}
 
 export function watchUser(cb) {
   if (!auth) { cb(null); return () => {} }

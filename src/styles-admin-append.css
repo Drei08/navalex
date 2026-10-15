@@ -54,6 +54,7 @@
 }
 
 .dev-muted {
+  margin-top: 1rem;
   color: var(--d-mut);
  
 }
@@ -93,6 +94,7 @@
 }
 
 .dev-btn {
+  margin-top: 0.8rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -104,6 +106,19 @@
   border: 0;
   border-radius: 10px;
   transition: .2s;
+}
+
+/* Botão "Entrar": só borda e texto laranja até preencher e-mail e senha */
+.dev-btn.dev-btn-outline {
+  color: var(--d-or);
+  background: transparent;
+  border: 2px solid var(--d-or);
+}
+
+/* E-mail e senha preenchidos: volta ao laranja cheio */
+.dev-btn.dev-btn-outline.on {
+  color: #0a0a0a;
+  background: var(--d-or);
 }
 
 .dev-btn:hover {

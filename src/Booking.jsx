@@ -6,14 +6,15 @@ import { subscribeBookings, addBooking, isRemote } from './bookings.js'
 const services = [
   { name: 'Corte', price: 35 },
   { name: 'Barba', price: 25 },
-  { name: 'Corte + Barba', price: 55 },
-  { name: 'Degradê', price: 40 },
-  { name: 'Sobrancelha', price: 15 },
+  { name: 'Pezinho', price: 10 },
+  { name: 'Sobrancelha', price: 10 },
+  { name: 'Corte + Sobrancelha', price: 40 },
+  { name: 'Corte + Barba + Sobrancelha', price: 60 }
 ]
 
 const money = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const times = ['08:00', '08:30', '09:00', '09:30', '10:00','10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30',
-   '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00']
+   '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00']
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10)
 const fmt = s => s.split('-').reverse().join('/')
 const fmtShort = s => s.split('-').reverse().slice(0, 2).join('/')
@@ -65,9 +66,9 @@ export default function Booking() {
     <div className="book">
 
       <header className="book-top">
-        <a href="#inicio" className="back"><FaArrowLeft /> Voltar ao site</a>
+        <a href="/" className="back"><FaArrowLeft /> Voltar ao site</a>
         <div className="logo">
-          <a className="logo" href="#inicio"><FaCut />Alex Navalex</a>
+          <a className="logo" href="/"><FaCut />Alex Navalex</a>
         </div>
       </header>
 

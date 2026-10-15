@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { FaSignOutAlt, FaTrashAlt, FaPrint, FaLock, FaCalendarDay } from 'react-icons/fa'
+import { FaSignOutAlt, FaTrashAlt, FaPrint, FaLock, FaCalendarDay, FaFilePdf, FaDatabase, FaEnvelope } from 'react-icons/fa'
 import { isRemote, watchUser, login, logout, subscribeAllBookings, deleteBooking } from './bookings.js'
+import { buildMonthlyPdf, downloadBackupJson, sendReportByEmail, reportEmailEnabled, pdfName, monthLabel } from './backup.js'
 import './styles-admin-append.css'
 
 const todayIso = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) }
 const fmt = s => s.split('-').reverse().join('/')
 const money = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
 
 
 
@@ -18,6 +20,7 @@ function Login() {
   const [pass, setPass] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const ready = email.trim() !== '' && pass !== ''
 
   async function submit(e) {
     e.preventDefault()
@@ -36,18 +39,65 @@ function Login() {
           <label>E-mail<input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required /></label>
           <label>Senha<input type="password" autoComplete="current-password" value={pass} onChange={e => setPass(e.target.value)} required /></label>
           {err && <p className="dev-err">{err}</p>}
-          <button className="dev-btn" disabled={busy}><FaLock /> {busy ? 'Entrando...' : 'Entrar'}</button>
+          <button className={'dev-btn dev-btn-outline' + (ready ? ' on' : '')} disabled={busy}>
+  <FaLock /> {busy ? 'Entrando...' : 'Entrar'}
+</button>
         </form>
-        <a className="dev-link" href="/">Voltar ao site</a>
+        <a className="dev-link" href="/home">Voltar ao site</a>
       </div>
     </div>)
+}
+
+// Relatório mensal em PDF (baixar ou enviar por e-mail) e backup completo em JSON
+function BackupBox({ list, user }) {
+  const [month, setMonth] = useState(todayIso().slice(0, 7))
+  const [status, setStatus] = useState(null) // { ok, text }
+  const [busy, setBusy] = useState(false)
+
+  const inMonth = list.filter(b => b.date.startsWith(month))
+
+  function downloadPdf() {
+    if (!month) return
+    buildMonthlyPdf(month, inMonth).save(pdfName(month))
+    setStatus({ ok: true, text: `PDF de ${monthLabel(month)} baixado.` })
+  }
+
+  function downloadJson() {
+    downloadBackupJson(list)
+    setStatus({ ok: true, text: `Backup baixado (${list.length} agendamentos). Guarde o arquivo em um lugar seguro.` })
+  }
+
+  async function emailPdf() {
+    if (!month) return
+    setBusy(true); setStatus(null)
+    try {
+      await sendReportByEmail(user, month, buildMonthlyPdf(month, inMonth))
+      setStatus({ ok: true, text: `Relatório de ${monthLabel(month)} enviado por e-mail.` })
+    } catch (e) {
+      setStatus({ ok: false, text: 'Não foi possível enviar: ' + e.message })
+    }
+    setBusy(false)
+  }
+
+  return (
+    <section className="dev-backup no-print">
+      <h2>Relatório e backup</h2>
+      <div className="dev-bar">
+        <label>Mês<input type="month" value={month} onChange={e => setMonth(e.target.value)} /></label>
+        <button className="dev-btn sm" onClick={downloadPdf} disabled={!month}><FaFilePdf /> Baixar PDF do mês</button>
+        {reportEmailEnabled &&
+          <button className="dev-ghost" onClick={emailPdf} disabled={!month || busy}><FaEnvelope /> {busy ? 'Enviando...' : 'Enviar PDF por e-mail'}</button>}
+      </div>
+      {status && <p className={status.ok ? 'dev-ok' : 'dev-err'}>{status.text}</p>}
+    </section>
+  )
 }
 
 function Panel({ user }) {
   const [list, setList] = useState([])
   const [day, setDay] = useState(todayIso())
   const [msg, setMsg] = useState('')
-useEffect(() => subscribeAllBookings(setList), [])
+  useEffect(() => subscribeAllBookings(setList), [])
 
   const shown = day ? list.filter(b => b.date === day) : list
   const total = shown.reduce((sum, b) => sum + (b.price || 0), 0)
@@ -69,7 +119,8 @@ useEffect(() => subscribeAllBookings(setList), [])
 
       <main className="dev-panel">
         <h1>Agendamentos</h1>
-        <p className="dev-muted no-print">Atualiza em tempo real. Ao excluir, o horário volta a ficar livre no site.</p>
+
+        <BackupBox list={list} user={user} />
 
         <div className="dev-bar no-print">
           <label>Data<input type="date" value={day} onChange={e => setDay(e.target.value)} /></label>
@@ -90,6 +141,8 @@ useEffect(() => subscribeAllBookings(setList), [])
                 <button className="dev-del no-print" onClick={() => remove(b)}><FaTrashAlt /> Excluir</button>
               </li>))}</ul>
           : <p className="dev-empty">Nenhum agendamento {day ? 'nesta data' : 'por enquanto'}.</p>}
+
+          <p className="dev-muted no-print">Atualiza em tempo real. Ao excluir, o horário volta a ficar livre no site.</p>
 
         <div className="dev-totals">
           <div><span>Agendamentos</span><b>{shown.length}</b></div>

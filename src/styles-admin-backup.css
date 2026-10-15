@@ -1,0 +1,30 @@
+/* Acrescente ao final do styles-admin-append.css */
+.dev-backup {
+  margin: 0 0 1.5rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--d-card);
+  border: 1px solid #ffffff14;
+  border-left: 3px solid var(--d-or);
+  border-radius: 12px;
+}
+
+.dev-backup h2 {
+  margin: 0 0 .8rem;
+  font-size: 1.1rem;
+}
+
+.dev-backup .dev-bar {
+  margin: 0;
+}
+
+.dev-ok {
+  margin: .8rem 0 0;
+  color: #4ade80;
+  font-size: .9rem;
+}
+
+.dev-hint {
+  margin: .8rem 0 0;
+  font-size: .85rem;
+  color: var(--d-mut);
+}

@@ -68,6 +68,22 @@ h3,
   border-color: var(--gold);
 }
 
+.nav ul li a.nav-login {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem 1.1rem;
+  color: #e0a82e;
+  border: 2px solid #e0a82e;
+  border-radius: 999px;
+  transition: .2s;
+}
+
+.nav ul li a.nav-login:hover {
+  color: #0a0a0a;
+  background: #e0a82e;
+}
+
 .logo {
   display: flex;
   align-items: center;
