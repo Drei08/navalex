@@ -2,22 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { FaArrowLeft, FaWhatsapp, FaCut, FaCheckCircle, FaRegClock } from 'react-icons/fa'
 import { WA_NUMBER } from './config.js'
 import { subscribeBookings, addBooking, isRemote } from './bookings.js'
-
-const services = [
-  { name: 'Corte', price: 35 },
-  { name: 'Barba', price: 25 },
-  { name: 'Pezinho', price: 10 },
-  { name: 'Sobrancelha', price: 10 },
-  { name: 'Corte + Sobrancelha', price: 40 },
-  { name: 'Corte + Barba + Sobrancelha', price: 60 }
-]
+import { SERVICES as services, slotsOfDay, joinTimes, durationOf, startOptions, slotsFor } from './schedule.js'
 
 const money = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-const times = ['08:00', '08:30', '09:00', '09:30', '10:00','10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30',
-   '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00']
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10)
 const fmt = s => s.split('-').reverse().join('/')
 const fmtShort = s => s.split('-').reverse().slice(0, 2).join('/')
+const fmtDur = m => m % 60 === 0 ? m / 60 + 'h' : m + ' min'
 
 export default function Booking() {
   const days = useMemo(() => Array.from({ length: 21 }, (_, k) => { const d = new Date(); d.setDate(d.getDate() + k); return d }).filter(d => d.getDay() !== 0), [])
@@ -26,22 +17,34 @@ export default function Booking() {
   const [saving, setSaving] = useState(false)
   const [booked, setBooked] = useState([])
   const set = (k, v) => setF(p => ({ ...p, [k]: v }))
-  const toggle = name => setF(p => ({
-    ...p,
-    service: p.service.includes(name) ? p.service.filter(n => n !== name) : [...p.service, name],
-  }))
+
+  // Ao mudar os serviços, só limpa o horário escolhido se a duração mudou (ex.: de 30 min para 1h)
+  const toggle = name => setF(p => {
+    const service = p.service.includes(name) ? p.service.filter(n => n !== name) : [...p.service, name]
+    return { ...p, service, time: durationOf(service) === durationOf(p.service) ? p.time : '' }
+  })
   useEffect(() => subscribeBookings(setBooked), [])
 
   const now = new Date()
   const taken = t => booked.some(b => b.date === f.date && b.time === t)
   const past = t => f.date === iso(now) && t <= now.toTimeString().slice(0, 5)
-  const off = t => !f.date || taken(t) || past(t)
   const step = !f.service.length ? 1 : !f.date ? 2 : !f.time ? 3 : 4
   const total = f.service.reduce((sum, n) => sum + (services.find(s => s.name === n)?.price ?? 0), 0)
 
-  //Horarios de sábado só até 12:30, para dar tempo de limpar a barbearia antes do almoço
-  const sat = f.date && new Date(f.date + 'T12:00').getDay() === 6
-  const list = sat ? times.filter(t => t < '13:00') : times
+  const daySlots = slotsOfDay(f.date) // sábado só até 12:30 (ver schedule.js)
+
+  // Duração do que foi escolhido: 30 min normalmente; 1h para Corte + Barba + Sobrancelha.
+  // Serviço de 1h mostra só horários cheios (08:00, 09:00...) e precisa da meia hora seguinte livre.
+  const duration = durationOf(f.service)
+  const busy = booked.filter(b => b.date === f.date).map(b => b.time)
+  const options = startOptions(daySlots, busy, duration)
+  const off = t => !f.date || past(t) || !options.find(o => o.time === t)?.free
+
+  // Lista "Horários já agendados": um serviço de 1h aparece numa linha só, com os horários que ocupa (09:00 e 09:30)
+  const bookedList = booked.filter(b => !b.ref).map(b => {
+    const extra = booked.filter(x => x.ref === `${b.date}_${b.time}`).length
+    return { ...b, hours: joinTimes(slotsFor(b.time, 30 * (1 + extra))) }
+  })
 
   async function send(e) {
     e.preventDefault()
@@ -51,7 +54,8 @@ export default function Booking() {
     const w = window.open('', '_blank')
     try {
       await addBooking({ name: f.name.trim(), date: f.date, time: f.time, service: f.service.join(' + '), price: total })
-      const msg = `Olá, Alex! Gostaria de agendar:\n• Serviço: ${f.service.join(', ')}\n• Valor: ${money(total)}\n• Data: ${fmt(f.date)}\n• Horário: ${f.time}\n• Nome: ${f.name}\n• Telefone: ${f.phone}`
+      const hora = duration > 30 ? `${f.time} (duração de ${fmtDur(duration)})` : f.time
+      const msg = `Olá, Alex! Gostaria de agendar:\n• Serviço: ${f.service.join(', ')}\n• Valor: ${money(total)}\n• Data: ${fmt(f.date)}\n• Horário: ${hora}\n• Nome: ${f.name}\n• Telefone: ${f.phone}`
       const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`
       if (w) w.location.href = url; else location.href = url
       set('time', '')
@@ -62,6 +66,7 @@ export default function Booking() {
     setSaving(false)
   }
 
+  
   return (
     <div className="book">
 
@@ -94,8 +99,9 @@ export default function Booking() {
 
         <h3>3. Horário</h3>
         {!f.date && <p className="sub">Escolha uma data para ver os horários livres.</p>}
-        <div className="chips">{list.map(t => (
-          <button key={t} disabled={off(t)} className={(f.time === t ? 'on ' : '') + (taken(t) ? 'busy' : '')} onClick={() => set('time', t)}>
+        {duration > 30 && <p className="sub">Este serviço leva 1h: ao escolher um horário, ele reserva também a meia hora seguinte.</p>}
+        <div className="chips">{options.map(({ time: t }) => (
+          <button key={t} type="button" disabled={off(t)} className={(f.time === t ? 'on ' : '') + (taken(t) ? 'busy' : '')} onClick={() => set('time', t)}>
             <span className="hora">{t}</span>{taken(t) && <small className="agendado">Agendado</small>}
           </button>))}</div>
 
@@ -105,7 +111,7 @@ export default function Booking() {
           <input placeholder="Seu telefone (com DDD)" inputMode="tel" value={f.phone} onChange={e => set('phone', e.target.value)} />
           {err && <p className="err">{err}</p>}
           {f.service.length > 0 && f.date && f.time && (
-            <div className="sum"><FaCheckCircle /> {f.service.join(' + ')} · {money(total)} · {fmt(f.date)} às {f.time}</div>
+            <div className="sum"><FaCheckCircle /> {f.service.join(' + ')} · {money(total)} · {fmt(f.date)} às {duration > 30 ? joinTimes(slotsFor(f.time, duration)) : f.time}</div>
           )}
           <p className="note">Para confirmação do agendamento, envie a mensagem pelo WhatsApp.</p>
           <button className="btn wa" disabled={step < 4 || saving}><FaWhatsapp /> {saving ? 'Salvando...' : 'Confirmar pelo WhatsApp'}</button>
@@ -114,8 +120,8 @@ export default function Booking() {
 
         <section className="booked">
           <h3><FaRegClock /> Horários já agendados</h3>
-          {booked.length
-            ? <ul>{booked.map(b => <li key={b.date + b.time}><span>{fmtShort(b.date)} às {b.time}</span><b>{b.name}</b></li>)}</ul>
+          {bookedList.length
+            ? <ul>{bookedList.map(b => <li key={b.date + b.time}><span>{fmtShort(b.date)} às {b.hours}</span><b>{b.name}</b></li>)}</ul>
             : <p>Nenhum horário ocupado por enquanto. Todos estão livres.</p>}
           {!isRemote && <p className="note">Modo de teste: os agendamentos só aparecem neste navegador.</p>}
         </section>

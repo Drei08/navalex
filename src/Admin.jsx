@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FaSignOutAlt, FaTrashAlt, FaPrint, FaLock, FaCalendarDay, FaFilePdf, FaDatabase, FaEnvelope } from 'react-icons/fa'
 import { isRemote, watchUser, login, logout, subscribeAllBookings, deleteBooking } from './bookings.js'
 import { buildMonthlyPdf, downloadBackupJson, sendReportByEmail, reportEmailEnabled, pdfName, monthLabel } from './backup.js'
+import NewBooking from './NewBooking.jsx'
 import './styles-admin-append.css'
 
 const todayIso = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) }
@@ -98,9 +99,11 @@ function Panel({ user }) {
   const [day, setDay] = useState(todayIso())
   const [msg, setMsg] = useState('')
   useEffect(() => subscribeAllBookings(setList), [])
+  
 
   const shown = day ? list.filter(b => b.date === day) : list
   const total = shown.reduce((sum, b) => sum + (b.price || 0), 0)
+  
 
   async function remove(b) {
     if (!window.confirm(`Excluir o agendamento de ${b.name} (${fmt(b.date)} às ${b.time})?`)) return
@@ -120,6 +123,7 @@ function Panel({ user }) {
       <main className="dev-panel">
         <h1>Agendamentos</h1>
 
+        <NewBooking list={list} user={user} day={day} onAdded={d => setDay(d)} />
         <BackupBox list={list} user={user} />
 
         <div className="dev-bar no-print">

@@ -4,9 +4,12 @@
 // Duas coleções no Firestore:
 //   horarios      -> { date, time, name } com só o PRIMEIRO nome. É pública: o site lê para mostrar os horários ocupados.
 //   agendamentos  -> { name, date, time, service, price }. É privada: só o dono lê (ver firestore.rules).
-// As duas usam o mesmo id "data_hora" e são gravadas/apagadas juntas, sempre em uma operação só.
+// As duas usam o id "data_hora" e são gravadas/apagadas juntas, sempre em uma operação só.
+// Serviço de mais de 30 min (ex.: 1h) grava UM agendamento e um "horario" para cada 30 min ocupados;
+// os horários de continuação levam o campo ref = id do horário inicial.
 import { initializeApp } from 'firebase/app'
 import { getFirestore, collection, doc, getDocs, query, where, orderBy, runTransaction, writeBatch, onSnapshot } from 'firebase/firestore'
+import { durationOf, slotsFor } from './schedule.js'
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
 
 const cfg = {
@@ -24,8 +27,11 @@ const LS = 'alex-agendamentos'
 const today = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) }
 const readLocal = () => { try { return JSON.parse(localStorage.getItem(LS) || '[]') } catch { return [] } }
 const byDate = (a, b) => (a.date + a.time).localeCompare(b.date + b.time)
-const upcoming = () => readLocal().filter(b => b.date >= today()).sort(byDate)
 const docId = b => `${b.date}_${b.time}`
+// modo de teste: cada agendamento vira um horário ocupado para cada 30 min que ele dura
+const expand = b => slotsFor(b.time, b.duration || 30).map((t, i) =>
+  ({ date: b.date, time: t, name: b.name, ...(i ? { ref: docId(b) } : {}) }))
+const upcoming = () => readLocal().filter(b => b.date >= today()).flatMap(expand).sort(byDate)
 
 // Nome que aparece na lista pública de horários. Só o primeiro nome, para não expor o nome completo.
 // Para mostrar o nome completo, troque o corpo por: String(n || '').trim().slice(0, 30) || 'Cliente'
@@ -51,42 +57,62 @@ export function subscribeBookings(cb) {
 }
 
 // Painel do Alex: todos, inclusive dias que já passaram (só o dono logado consegue ler)
-export function subscribeAllBookings(cb) {
+// onError (opcional) recebe o erro de leitura, para o painel avisar em vez de mostrar uma lista vazia sem explicação
+export function subscribeAllBookings(cb, onError) {
   if (!isRemote) { listeners.add(cb); cb(readLocal().sort(byDate)); return () => listeners.delete(cb) }
   return onSnapshot(
     collection(db, 'agendamentos'),
     snap => cb(snap.docs.map(d => d.data()).sort(byDate)),
-    err => console.error('Firestore (agendamentos):', err.code, err.message)
+    err => { console.error('Firestore (agendamentos):', err.code, err.message); onError?.(err) }
   )
 }
 
 export async function addBooking(b) {
   if (!isRemote) {
     const all = readLocal()
-    if (all.some(x => x.date === b.date && x.time === b.time)) throw new Error('taken')
-    localStorage.setItem(LS, JSON.stringify([...all, b]))
+    const duration = durationOf(b.service)
+    const busy = new Set(all.filter(x => x.date === b.date).flatMap(x => slotsFor(x.time, x.duration || 30)))
+    if (slotsFor(b.time, duration).some(t => busy.has(t))) throw new Error('taken')
+    localStorage.setItem(LS, JSON.stringify([...all, { ...b, duration }]))
     emit()
     return
   }
   // O id do documento é "data_hora": dois clientes não conseguem ocupar o mesmo horário.
   // A checagem é feita na coleção pública "horarios", que o site tem permissão de ler.
+  // Serviço de 1h ocupa dois horários (ex.: 13:00 e 13:30); só agenda se TODOS estiverem livres.
   const id = docId(b)
-  const slotRef = doc(db, 'horarios', id)
+  const duration = durationOf(b.service)
+  const times = slotsFor(b.time, duration)
+  const slotRefs = times.map(t => doc(db, 'horarios', `${b.date}_${t}`))
   const bookingRef = doc(db, 'agendamentos', id)
-  await runTransaction(db, async tx => {
-    if ((await tx.get(slotRef)).exists()) throw new Error('taken')
-    tx.set(slotRef, { date: b.date, time: b.time, name: publicName(b.name) })
-    tx.set(bookingRef, { name: b.name, date: b.date, time: b.time, service: b.service || '', price: Number(b.price) || 0 })
-  })
+  try {
+    await runTransaction(db, async tx => {
+      const snaps = await Promise.all(slotRefs.map(r => tx.get(r)))
+      if (snaps.some(s => s.exists())) throw new Error('taken')
+      slotRefs.forEach((r, i) => {
+        const slot = { date: b.date, time: times[i], name: publicName(b.name) }
+        tx.set(r, i === 0 ? slot : { ...slot, ref: id })
+      })
+      // "duration" só é gravado nos serviços longos: os de 30 min continuam idênticos aos de antes
+      // (funcionam mesmo se as regras do Firestore ainda forem as antigas).
+      tx.set(bookingRef, {
+        name: b.name, date: b.date, time: b.time, service: b.service || '', price: Number(b.price) || 0,
+        ...(duration > 30 ? { duration } : {}),
+      })
+    })
+  } catch (e) {
+    // Horário ocupado é esperado; qualquer outro erro (ex.: permission-denied) aparece no Console (F12)
+    if (e.message !== 'taken') console.error('Falha ao agendar:', e.code, e.message)
+    throw e
+  }
 }
 
 // Só funciona logado com o e-mail autorizado nas regras do Firestore.
-// Apaga o agendamento e o horário juntos, para o horário voltar a ficar livre no site.
+// Apaga o agendamento e todos os horários que ele ocupava, para voltarem a ficar livres no site.
 export function deleteBooking(b) {
-  const id = docId(b)
   const batch = writeBatch(db)
-  batch.delete(doc(db, 'agendamentos', id))
-  batch.delete(doc(db, 'horarios', id))
+  batch.delete(doc(db, 'agendamentos', docId(b)))
+  slotsFor(b.time, b.duration || 30).forEach(t => batch.delete(doc(db, 'horarios', `${b.date}_${t}`)))
   return batch.commit()
 }
 
