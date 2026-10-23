@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { FaArrowLeft, FaWhatsapp, FaCut, FaCheckCircle, FaRegClock } from 'react-icons/fa'
 import { WA_NUMBER } from './config.js'
 import { subscribeBookings, addBooking, isRemote } from './bookings.js'
-import { SERVICES as services, slotsOfDay, joinTimes, durationOf, startOptions, slotsFor } from './schedule.js'
+import { SERVICES as services, slotsOfDay, extraSlotsOf, joinTimes, durationOf, startOptions, slotsFor } from './schedule.js'
 
 const money = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10)
@@ -37,7 +37,7 @@ export default function Booking() {
   // Serviço de 1h mostra só horários cheios (08:00, 09:00...) e precisa da meia hora seguinte livre.
   const duration = durationOf(f.service)
   const busy = booked.filter(b => b.date === f.date).map(b => b.time)
-  const options = startOptions(daySlots, busy, duration)
+  const options = startOptions(daySlots, busy, duration, { extra: extraSlotsOf(f.date) })
   const off = t => !f.date || past(t) || !options.find(o => o.time === t)?.free
 
   // Lista "Horários já agendados": um serviço de 1h aparece numa linha só, com os horários que ocupa (09:00 e 09:30)

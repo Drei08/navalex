@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { FaPlus, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa'
+import { FaPlus, FaCheckCircle } from 'react-icons/fa'
 import { addBooking } from './bookings.js'
-import { SERVICES, slotsOfDay, joinTimes, durationOf, startOptions, slotsFor } from './schedule.js'
+import { SERVICES, slotsOfDay, extraSlotsOf, joinTimes, durationOf, startOptions, slotsFor } from './schedule.js'
 import './styles-admin-agendamento.css'
 
 const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10)
@@ -32,7 +32,7 @@ export default function NewBooking({ list, day, onAdded }) {
   const busy = useMemo(
     () => list.filter(b => b.date === date).flatMap(b => slotsFor(b.time, b.duration || 30)),
     [list, date])
-  const free = new Map(startOptions(slotsOfDay(date), busy, duration, { hourlyOnly: false }).map(o => [o.time, o.free]))
+  const free = new Map(startOptions(slotsOfDay(date), busy, duration, { hourlyOnly: false, extra: extraSlotsOf(date) }).map(o => [o.time, o.free]))
   const now = new Date()
   const passed = t => date === iso(now) && t <= now.toTimeString().slice(0, 5)
 
@@ -95,7 +95,7 @@ export default function NewBooking({ list, day, onAdded }) {
         </div>
 
         <div>
-          <h3>Horários <span className="dev-legend">{duration > 30 ? '** Esse horário de 1h precisa de mais meia hora seguinte livre **' : ''}</span></h3>
+          <h3>Horário <span className="dev-legend">cinza = já passou, mas está livre{duration > 30 ? ' · apagado = não cabe 1h (precisa da meia hora seguinte livre)' : ''}</span></h3>
           <div className="dev-chips dev-times">{slotsOfDay(date).map(t => {
             const taken = busy.includes(t)
             const ok = free.get(t)
@@ -109,15 +109,13 @@ export default function NewBooking({ list, day, onAdded }) {
           })}</div>
         </div>
 
-        {msg && <p className={msg.ok ? 'dev-ok' : 'dev-err'}>
-          {msg.ok ? <FaCheckCircle /> : <FaExclamationCircle />}
-          {msg.text}</p>}
+        {msg && <p className={msg.ok ? 'dev-ok' : 'dev-err'}>{msg.text}</p>}
 
         <div className="dev-new-foot">
           <p className="dev-new-sum">
             {service.length > 0 && time
-              ? <><FaCheckCircle /> {name.trim() && name.trim() + ' = '}{service.join(' + ')} · {money(total)} · {fmt(date)} às {joinTimes(slotsFor(time, duration))}</>
-              : ''}
+              ? <><FaCheckCircle /> {service.join(' + ')} · {money(total)} · {fmt(date)} às {joinTimes(slotsFor(time, duration))}</>
+              : 'Escolha o serviço e o horário.'}
           </p>
           <button className="dev-btn sm" disabled={saving}>{saving ? 'Salvando...' : 'Adicionar'}</button>
         </div>

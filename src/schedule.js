@@ -17,8 +17,17 @@ export const SERVICES = [
 export const TIMES = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30',
   '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00']
 
-// Horários de sábado só até 12:30, para dar tempo de limpar a barbearia antes do almoço
-export const slotsOfDay = date => (date && new Date(date + 'T12:00').getDay() === 6 ? TIMES.filter(t => t < '13:00') : TIMES)
+// Horários de SÁBADO (diferentes da semana). Para incluir ou tirar um horário, edite esta lista.
+export const SATURDAY_TIMES = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00']
+
+const isSaturday = date => Boolean(date) && new Date(date + 'T12:00').getDay() === 6
+export const slotsOfDay = date => (isSaturday(date) ? SATURDAY_TIMES : TIMES)
+
+// Horários que NÃO aparecem para o cliente escolher, mas que um serviço longo pode ocupar na continuação.
+// Ex.: serviço de 1h às 19:00 ocupa 19:00 e 19:30, e o 19:30 não existe na grade.
+// Fora desta lista, um horário que não está na grade (como o almoço, 12:00 e 12:30 em dias de semana) bloqueia o serviço.
+const EXTRA = { week: ['19:30'], sat: ['12:30', '13:30'] }
+export const extraSlotsOf = date => (isSaturday(date) ? EXTRA.sat : EXTRA.week)
 
 // ['09:00', '09:30'] -> "09:00 e 09:30"
 export const joinTimes = ts => (ts.length > 1 ? ts.slice(0, -1).join(', ') + ' e ' + ts[ts.length - 1] : ts[0])
@@ -63,12 +72,17 @@ export const endTime = (start, duration = STEP) => toTime(toMin(start) + duratio
  *   duration: durationOf(serviço escolhido)
  *   opts.hourlyOnly: serviço longo mostra só horários cheios (padrão). O painel passa false para
  *                     poder encaixar um atendimento de 1h em qualquer meia hora livre.
+ *   opts.extra:      horários de continuação fora da grade (extraSlotsOf(data)), ex.: ['19:30'].
+ *                     Sem isso, só vale o que está dentro da grade.
  * Retorna [{ time, free }]. Todos os horários seguintes que o serviço ocupa precisam estar livres.
  */
-export function startOptions(daySlots, busy, duration = STEP, { hourlyOnly = duration > STEP } = {}) {
+export function startOptions(daySlots, busy, duration = STEP, { hourlyOnly = duration > STEP, extra = [] } = {}) {
   const taken = new Set(busy)
   const grid = new Set(daySlots)
+  const spare = new Set(extra)
+  // horário da grade ou de continuação: precisa estar livre. Qualquer outro (ex.: almoço) bloqueia.
+  const okSlot = s => (grid.has(s) || spare.has(s)) && !taken.has(s)
   return daySlots
     .filter(t => !hourlyOnly || t.endsWith(':00'))
-    .map(t => ({ time: t, free: slotsFor(t, duration).every(s => grid.has(s) && !taken.has(s)) }))
+    .map(t => ({ time: t, free: slotsFor(t, duration).every(okSlot) }))
 }
