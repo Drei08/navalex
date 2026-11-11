@@ -73,7 +73,7 @@ export default function Booking() {
       <header className="book-top">
         <a href="/" className="back"><FaArrowLeft /> Voltar ao site</a>
         <div className="logo">
-          <a className="logo" href="/"><FaCut />Alex Navalex</a>
+          <a className="logo" href="/"><FaCut />Barbeiro Navalex</a>
         </div>
       </header>
 

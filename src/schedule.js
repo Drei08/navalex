@@ -7,7 +7,7 @@ const STEP = 30 // minutos por horário
 export const SERVICES = [
   { name: 'Corte', price: 35 },
   { name: 'Barba', price: 25 },
-  { name: 'Pezinho', price: 10 },
+  { name: 'Pezinho', price: 15 },
   { name: 'Sobrancelha', price: 10 },
   { name: 'Corte + Sobrancelha', price: 40 },
   { name: 'Corte + Barba + Sobrancelha', price: 60 },

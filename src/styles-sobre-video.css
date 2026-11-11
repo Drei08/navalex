@@ -1,0 +1,35 @@
+/* Acrescente ao FINAL do styles.css */
+
+/* ===== Sobre: vídeo de convite (vertical 9:16, com som) ===== */
+.about-card.has-video {
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+}
+
+.about-video {
+  display: block;
+  width: 70%;
+  aspect-ratio: 9 / 6;
+  object-fit: cover;
+  background: #000;
+}
+
+@media (max-width: 760px) {
+  .about-card.has-video {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  /* no celular o vídeo não ocupa a tela toda */
+  .about-video {
+    width: min(100%, 300px);
+    margin-top: 1.5rem;
+    border-radius: 14px;
+  }
+
+  .about-card.has-video .about-txt {
+    align-items: center;
+    padding: 1.5rem;
+    text-align: center;
+  }
+}

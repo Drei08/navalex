@@ -211,7 +211,7 @@ h3,
 
 .about-card {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   align-items: stretch;
   background: var(--card);
   border: 1px solid #ffffff10;
@@ -715,11 +715,63 @@ input:focus {
   font-size: 1rem;
 }
 
+/* ===== Convite (vídeo): mesmo tamanho do card Sobre ===== */
+#convite {
+  margin-top: -4rem;
+}
+
+.video-box {
+  --video-w: 65%;              /* largura do vídeo dentro do espaço: mude só este número */
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: 360px;
+  background: #000;
+}
+
+.about-video {
+  display: block;
+  width: var(--video-w);
+  height: 100%;
+  object-fit: cover;           /* preenche o espaço do vídeo, cortando um pouco em cima e embaixo */
+  object-position: center 30%; /* mantém o rosto à vista */
+  background: #000;
+}
+
+/* aparece só se o navegador bloquear o som no início automático */
+.sound-btn {
+  position: absolute;
+  top: .8rem;
+  right: .8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .4rem .9rem;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--gold);
+  background: #000a;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  transition: .2s;
+}
+
+.sound-btn:hover {
+  color: #111;
+  background: var(--gold);
+}
+
+.about-txt .btn {
+  margin-top: .5rem;
+}
+
 
 @media(max-width:760px) {
+  
   .burger {
     display: block;
   }
+
   .nav ul {
     position: absolute;
     top: 100%;
@@ -731,19 +783,28 @@ input:focus {
     gap: 1rem;
     display: none;
   }
+
   .nav ul.open {
     display: flex;
   }
+
   .track img {
     height: 360px;
   }
+
   .arrow {
     display: none;
   }
+
   .fab span {
     display: none;
   }
+
   .fab {
     padding: 1rem;
+  }
+
+   .video-box {
+    --video-w: 80%;            /* no celular o espaço é menor, então o vídeo pode ocupar mais */
   }
 }

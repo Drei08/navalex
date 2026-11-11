@@ -1,0 +1,332 @@
+/* ===== Animações (framer-motion) ===== */
+
+/* título letra por letra (navbar e slide) */
+.split-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.split-ch {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.logo-ico {
+  display: inline-flex;
+}
+
+/* linha dourada sob o título do slide */
+.slide-line {
+  display: block;
+  width: 84px;
+  height: 3px;
+  margin-top: .9rem;
+  background: var(--gold);
+  border-radius: 3px;
+  transform-origin: left center;
+}
+
+.dots button {
+  transition: width .3s, background .3s;
+}
+
+/* ===== carrossel de trabalhos ===== */
+.carousel {
+  --w: clamp(210px, 60vw, 300px);
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+
+.carousel:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.car-stage {
+  position: relative;
+  height: calc(var(--w) * 1.3);
+}
+
+.car-item {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--w);
+  height: 100%;
+  margin-left: calc(var(--w) / -2);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px #000a;
+}
+
+.car-item.on {
+  cursor: default;
+  box-shadow: 0 22px 50px #000c, 0 0 0 1px #e0a52655;
+}
+
+.car-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.car-dots {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: 1.6rem;
+}
+
+.car-dot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff40;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: width .35s, background .3s;
+}
+
+.car-dot.on {
+  width: 34px;
+  background: #e0a52633;
+}
+
+/* preenchimento = tempo até a próxima foto */
+.car-dot i {
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform-origin: left center;
+}
+
+/* ===== contato ===== */
+/* a transição de CSS brigaria com o framer: deixa só a de cor/borda */
+.card {
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.card:hover {
+  transform: none;
+  border-color: var(--gold);
+  box-shadow: 0 14px 34px #0009;
+}
+
+.card-ico {
+  display: flex;
+}
+
+/* ===== localização ===== */
+.pin {
+  display: inline-block;
+}
+
+@media (max-width: 760px) {
+  .slide-txt h1 {
+    font-size: clamp(2rem, 9vw, 2.6rem);
+  }
+
+  .car-dot.on {
+    width: 28px;
+  }
+}
+
+/* ===== botão LOGIN da navbar ===== */
+.nav ul a.nav-login {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem 1.2rem;
+  color: var(--gold);
+  border: 1.5px solid var(--gold);
+  border-radius: 999px;
+  transition: background .25s, color .25s;
+}
+
+.nav ul a.nav-login:hover {
+  background: var(--gold);
+  color: #0d0d0f;
+}
+
+/* ===== Convite Navalex ===== */
+/* o vídeo usa .about-img (mesma altura da foto do Sobre); aqui só o enquadramento */
+.convite-video {
+  object-position: center 20%;
+  background: #000;
+}
+/* ===== Animações (framer-motion) ===== */
+
+/* título letra por letra (navbar e slide) */
+.split-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.split-ch {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.logo-ico {
+  display: inline-flex;
+}
+
+/* linha dourada sob o título do slide */
+.slide-line {
+  display: block;
+  width: 84px;
+  height: 3px;
+  margin-top: .9rem;
+  background: var(--gold);
+  border-radius: 3px;
+  transform-origin: left center;
+}
+
+.dots button {
+  transition: width .3s, background .3s;
+}
+
+/* ===== carrossel de trabalhos ===== */
+.carousel {
+  --w: clamp(210px, 60vw, 300px);
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+
+.carousel:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+.car-stage {
+  position: relative;
+  height: calc(var(--w) * 1.3);
+}
+
+.car-item {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--w);
+  height: 100%;
+  margin-left: calc(var(--w) / -2);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px #000a;
+}
+
+.car-item.on {
+  cursor: default;
+  box-shadow: 0 22px 50px #000c, 0 0 0 1px #e0a52655;
+}
+
+.car-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.car-dots {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: 1.6rem;
+}
+
+.car-dot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  overflow: hidden;
+  background: #ffffff40;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: width .35s, background .3s;
+}
+
+.car-dot.on {
+  width: 34px;
+  background: #e0a52633;
+}
+
+/* preenchimento = tempo até a próxima foto */
+.car-dot i {
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform-origin: left center;
+}
+
+/* ===== contato ===== */
+/* a transição de CSS brigaria com o framer: deixa só a de cor/borda */
+.card {
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.card:hover {
+  transform: none;
+  border-color: var(--gold);
+  box-shadow: 0 14px 34px #0009;
+}
+
+.card-ico {
+  display: flex;
+}
+
+/* ===== localização ===== */
+.pin {
+  display: inline-block;
+}
+
+@media (max-width: 760px) {
+  .slide-txt h1 {
+    font-size: clamp(2rem, 9vw, 2.6rem);
+  }
+
+  .car-dot.on {
+    width: 28px;
+  }
+}
+
+/* ===== botão LOGIN da navbar ===== */
+.nav ul a.nav-login {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem 1.2rem;
+  color: var(--gold);
+  border: 1.5px solid var(--gold);
+  border-radius: 999px;
+  transition: background .25s, color .25s;
+}
+
+.nav ul a.nav-login:hover {
+  background: var(--gold);
+  color: #0d0d0f;
+}
+
+/* ===== Convite Navalex ===== */
+/* o vídeo usa .about-img (mesma altura da foto do Sobre); aqui só o enquadramento */
+.convite-video {
+  object-position: center 20%;
+  background: #000;
+}
